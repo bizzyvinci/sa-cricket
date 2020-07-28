@@ -114,6 +114,7 @@ def write_player():
 
 	for player in set(rows):
 		player = player[0]	# Tuples were returned from select query
+		print('working on', player)
 		player_url = 'https://www.espncricinfo.com/southafrica/content/player/{}.html'.format(player)
 		b = extraction.extract_player(player_url)
 		player_data = (player, str(b[0]), str(b[1]), str(b[2]), str(b[3]), str(b[4]), str(b[5]))
@@ -134,6 +135,7 @@ def write_ground():
 
 	for ground in rows:
 		ground = ground[0] # Tuples were returned from select query
+		print('working on', ground)
 		ground_url = 'https://www.espncricinfo.com/ci/content/ground/{}.html'.format(ground)
 		g = extraction.extract_ground(ground_url)
 		ground_data = (ground, str(g[0]), str(g[1]))
@@ -143,8 +145,8 @@ def write_ground():
 	
 	return True
 
-write_matches_by_year(2017)
-#write_player()
+#write_matches_by_year(2017)
+write_player()
 
 #print(extraction.extract_player('https://www.espncricinfo.com/southafrica/content/player/379143.html'))
 
