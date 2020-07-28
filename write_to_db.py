@@ -7,7 +7,7 @@ import extraction
 cnx = mc.connect(user='bisola', password='@1Bullshit', host='127.0.0.1', database='sa_cricket')
 cursor = cnx.cursor()
 
-def write_matches_by_year(start, stop):
+def write_matches_by_year(start, stop=2019):
 
 	# Note this function might not work properly because I just cut and edit from write_match(tr)
 
@@ -24,15 +24,26 @@ def write_matches_by_year(start, stop):
 
 		#print(matches)
 
+		c=0
 		for tr in matches:
-			write_match(tr)
+			write_full_match(tr)
+			c+=1
+			print(c, 'match')
+			#if c==2: break
 
-def write_match(tr):
+def write_full_match(tr):
 	'''
 	write match data to match table in db
 	'''
 	m = tr.find_all('td')
 	#print(m)
+
+	# Don't execute for games without result
+	winner = m[2].string
+	if winner=='no result': 
+		print('found no result')
+		return False
+
 	team1 = m[0].a['href'].split('/')[-1].split('.')[0]
 	team2 = m[1].a['href'].split('/')[-1].split('.')[0]
 	if team1=='3':
@@ -56,32 +67,86 @@ def write_match(tr):
 					values(%d, %d, %d, %d, str_to_date("%s", "%%M %%d, %%Y"), "%s", "%s", "%s", "%s");
 				'''
 	# Double quotes are added above for all %s to avoid error (because some strings have comma)
+	add_bat = '''
+				insert into bat
+				values(%d, %d, %d, %d, %d, %d, %d, %f);
+			  '''
+	add_bowl = '''
+				insert into bowl
+				values(%d, %d, %f, %d, %d, %d, %f, %d, %d, %d, %d, %d);
+			   '''
+	
 	# strings are bs4.navigableString object. Therefore, convert to normal py string
 	match_data = (int(match_id), int(odi_no), int(opposition), int(ground), str(date), str(match[0]), str(match[1]), str(match[2]), str(match[3]))
-
-	print(add_match % match_data)
+	#print(add_match % match_data)
 	cursor.execute(add_match % match_data)
 	cnx.commit()
 
+	for b in bat:
+		bat_data = (int(b[0]), int(match_id), int(b[1]), int(b[2]), int(b[3]), int(b[4]), int(b[5]), float(b[6]))
+		cursor.execute(add_bat % bat_data)
+		cnx.commit()
+
+	for b in bowl:
+		bowl_data = (int(b[0]), int(match_id), float(b[1]), int(b[2]), int(b[3]), int(b[4]), float(b[5]), int(b[6]), int(b[7]), int(b[8]), int(b[9]), int(b[10]))
+		cursor.execute(add_bowl % bowl_data)
+		cnx.commit()
+
+	return True
 
 '''
 The following functions would be added
 '''
 def write_player():
-	# Select unique players from match table and extract their data using extraction module
-	player_url = 'https://www.espncricinfo.com/southafrica/content/player/{}.html'
-	pass
+	# Select unique players from bat and bowl table and extract their data using extraction module
+	select_batters = 'select distinct player from bat;'
+	cursor.execute(select_batters)
+	rows = cursor.fetchall()
+
+	select_bowlers = 'select distinct player from bowl;'
+	cursor.execute(select_bowlers)
+	rows.extend(cursor.fetchall())
+
+	add_player = '''
+					insert into player
+					values(%d, "%s",  str_to_date("%s", "%%M %%d, %%Y"), "%s", "%s", "%s", "%s")
+				 '''
+
+	for player in set(rows):
+		player = player[0]	# Tuples were returned from select query
+		player_url = 'https://www.espncricinfo.com/southafrica/content/player/{}.html'.format(player)
+		b = extraction.extract_player(player_url)
+		player_data = (player, str(b[0]), str(b[1]), str(b[2]), str(b[3]), str(b[4]), str(b[5]))
+		cursor.execute(add_player % player_data)
+		cnx.commit()
+		print('added player', player)
+
 
 def write_ground():
-	# Same method as player
-	ground_url = 'https://www.espncricinfo.com/ci/content/ground/{}.html'
-	pass
+	# Select unique grounds from mat table and extract their data using extraction module
+	select_query = 'select distinct ground from mat;'
+	add_ground = '''
+					insert into ground
+					values(%d, "%s", "%s");
+				 '''
+	cursor.execute(select_query)
+	rows = cursor.fetchall()
 
+	for ground in rows:
+		ground = ground[0] # Tuples were returned from select query
+		ground_url = 'https://www.espncricinfo.com/ci/content/ground/{}.html'.format(ground)
+		g = extraction.extract_ground(ground_url)
+		ground_data = (ground, str(g[0]), str(g[1]))
+		cursor.execute(add_ground % ground_data)
+		cnx.commit()
+		print('added ground', ground)
+	
+	return True
 
+write_matches_by_year(2017)
+#write_player()
 
-
-write_match()
-
+#print(extraction.extract_player('https://www.espncricinfo.com/southafrica/content/player/379143.html'))
 
 cursor.close()
 cnx.close()

@@ -34,14 +34,13 @@ create table bat(
     M int,
     _4s int,
     _6s int,
-    strike_rate decimal(5,2),
-    primary key(player, mat)
+    strike_rate decimal(5,2)
 );
 
 create table bowl(
 	player int not null,
     mat int not null,
-    overs float(4,2),
+    overs decimal(4,2),
     M int,
     runs int,
     wicket int,
@@ -50,8 +49,7 @@ create table bowl(
     _4s int,
     _6s int,
     wide int,
-    no_ball int,
-    primary key(player, mat)
+    no_ball int
 );
 
 create table ground(

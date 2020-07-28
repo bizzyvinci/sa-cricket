@@ -53,7 +53,14 @@ def extract_match(soup):
 
 	toss = match_table.contents[info.index('Toss')].contents[1].string
 	series = match_table.contents[info.index('Series')].contents[1].string
-	series_result = match_table.contents[info.index('Series result')].contents[1].string
+
+	# Unfortunately, some matches do not contain 'Series result'
+	# So to prevent breaking, we got an if statement
+	if 'Series result' in info:
+		series_result = match_table.contents[info.index('Series result')].contents[1].string
+	else:
+		series_result = ''
+
 	odi_no = match_table.contents[info.index('Match number')].contents[1].string.split('. ')[1] # Excluded
 	match_days = match_table.contents[info.index('Match days')].contents[1].string
 
@@ -74,7 +81,19 @@ def extract_bat(bat_table):
 			out = batman_cell.next_sibling
 			runs = out.next_sibling
 			ball_faced = runs.next_sibling
+
+			# This if statement below prevents working with strike_rate = '-'
+			# Also, 0 ball faced will probably mess with analysis
+			if ball_faced.string == '0':
+				continue
+
 			M = ball_faced.next_sibling
+			# I don't know what the heck M means but some are '-' too.
+			# M might be useful for someone else or later on so I'm droping it.
+			# Fortunately, I can't find M=0. So,
+			if M.string == '-':
+				M.string.replace_with('0')
+
 			_4s = M.next_sibling
 			_6s = _4s.next_sibling
 			strike_rate = _6s.next_sibling
@@ -141,9 +160,12 @@ def extract_player(url):
 	name = soup.title.string.split(' - ')[0]
 
 	# ODI DEBUT
-	tbody_tag = soup.find_all('table', 'engineTable')[2].contents[1]
-	tr_tag = tbody_tag.contents[6]
+	tbody_tag = soup.find_all('table', 'engineTable')[2]
+	tr_tag = tbody_tag.find_all('tr', 'data2')[3]
 	odi_debut = tr_tag.contents[3].contents[0].string
+	# The above odi_debut is like 'team1 v team2 at ground, Jan 19, 2013'
+	# Other details are not required
+	odi_debut = odi_debut.split(', ', 1)[1]
 
 	# Other details
 	playing_role = ''
@@ -175,7 +197,14 @@ def extract_player(url):
 	return [name, odi_debut, playing_role, batting_style, bowling_style, fielding_position]
 
 
+'''
+match, bat, bowl = full_match_extraction('https://www.espncricinfo.com/series/10904/scorecard/1075506/south-africa-vs-bangladesh-3rd-odi-bangladesh-tour-of-sa-2017-18')
+print(match)
+for x in bat: print(x)
+for y in bowl: print(y)
+'''
 
+#print(extract_player('https://www.espncricinfo.com/southafrica/content/player/379143.html'))
 
 
 #print(full_match_extraction('./wp/match1.html'))
@@ -183,8 +212,7 @@ def extract_player(url):
 # extract_match()
 
 
-player_url = 'https://www.espncricinfo.com/southafrica/content/player/{}.html'
-stad_url = 'https://www.espncricinfo.com/ci/content/ground/{}.html'
+
 
 
 '''
