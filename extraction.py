@@ -161,13 +161,14 @@ def extract_player(url):
 
 	# ODI DEBUT
 	tbody_tag = soup.find_all('table', 'engineTable')[2]
-	tr_tag = tbody_tag.find_all('tr', 'data2')[3]
-	odi_debut = tr_tag.contents[3].contents[0].string
-
-	print(tbody_tag)
-	# The above odi_debut is like 'team1 v team2 at ground, Jan 19, 2013'
-	# Other details are not required
-	odi_debut = odi_debut.split(', ', 1)[1]
+	tr_tag = tbody_tag.find_all('tr', 'data2')
+	for tr in tr_tag:
+		td = tr.find_all('td', 'left')
+		if td[0].string == 'ODI debut':
+			odi_debut = td[1].contents[0].string
+			# The above odi_debut is like 'team1 v team2 at ground, Jan 19, 2013'
+			# Other details are not required
+			odi_debut = odi_debut.split(', ', 1)[1]
 
 	# Other details
 	playing_role = ''
@@ -206,7 +207,7 @@ for x in bat: print(x)
 for y in bowl: print(y)
 '''
 
-print(extract_player('https://www.espncricinfo.com/southafrica/content/player/379143.html'))
+# print(extract_player('https://www.espncricinfo.com/southafrica/content/player/698189.html'))
 # 698189, 379143
 
 #print(full_match_extraction('./wp/match1.html'))
