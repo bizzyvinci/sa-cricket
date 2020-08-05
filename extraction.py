@@ -214,13 +214,3 @@ for y in bowl: print(y)
 #print(full_match_extraction('https://stats.espncricinfo.com/ci/engine/match/800471.html'))
 # extract_match()
 
-
-
-
-
-'''
-for x in range(2017,2020):
-	url = 'https://stats.espncricinfo.com/ci/engine/records/team/match_results.html?class=2;id={};team=3;type=year'
-	url =  url.format(x)
-	print(url)
-'''

@@ -114,7 +114,7 @@ def write_player():
 
 	for player in set(rows):
 		player = player[0]	# Tuples were returned from select query
-		print('working on', player)
+		print('working on player', player)
 		player_url = 'https://www.espncricinfo.com/southafrica/content/player/{}.html'.format(player)
 		b = extraction.extract_player(player_url)
 		player_data = (player, str(b[0]), str(b[1]), str(b[2]), str(b[3]), str(b[4]), str(b[5]))
@@ -135,7 +135,7 @@ def write_ground():
 
 	for ground in rows:
 		ground = ground[0] # Tuples were returned from select query
-		print('working on', ground)
+		print('working on ground', ground)
 		ground_url = 'https://www.espncricinfo.com/ci/content/ground/{}.html'.format(ground)
 		g = extraction.extract_ground(ground_url)
 		ground_data = (ground, str(g[0]), str(g[1]))
@@ -145,8 +145,60 @@ def write_ground():
 	
 	return True
 
+
+def write_opposition():
+	team_name = {}
+	team_rating = {}
+
+	# Get all id and name
+	res = requests.get('https://www.espncricinfo.com/story/_/id/18791072/all-cricket-teams-index')
+	res.raise_for_status
+	soup = BeautifulSoup(res.text, 'lxml')
+	male_teams = soup.find('div', 'teams-section')
+	team_link = male_teams.find_all('a', 'team-column')
+	for team in team_link:
+		team_id = int(team['href'].split('/')[-2])
+		name = team.find('h5', 'header-title label').string
+		team_name[team_id] = str(name)
+
+	
+
+	# Get ratings
+	# Note: This method would not have worked for United Arab Emirates(=UAE), United States of America(=USA) etc
+	# They are not considered because they are not in the opposition
+	res = requests.get('https://www.espncricinfo.com/rankings/content/page/211271.html')
+	res.raise_for_status
+	soup = BeautifulSoup(res.text, 'lxml')
+	icc = soup.find_all('table', 'StoryengineTable')[1]
+	rows = icc.find_all('tr')
+	#0 is the header and contains th instead of td. So to prevent in the following for statement
+	rows.pop(0) 
+	for tr in rows:
+		td = tr.find_all('td')
+		name = td[1].string
+		rating = int(td[-1].string)
+		team_rating[name] = rating
+		#print(name, rating)
+
+	
+	# get all distinct id from mat and save id, name and rating to opposition
+	select_query = 'select distinct opposition from mat;'
+	cursor.execute(select_query)
+	rows = cursor.fetchall()
+	add_opposition = 'insert into opposition values (%d, "%s", %d)'
+
+	for team in rows:
+		team = team[0] # Tuples were returned from select query
+		print('working on team', team)
+		name = team_name[team]
+		rating = team_rating[name]
+		#print(team, name, rating)
+		cursor.execute(add_opposition % (team, name, rating))
+		cnx.commit()
+		print('added team', team)
+
 #write_matches_by_year(2017)
-write_player()
+write_opposition()
 
 #print(extraction.extract_player('https://www.espncricinfo.com/southafrica/content/player/379143.html'))
 
