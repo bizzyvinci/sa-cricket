@@ -14,6 +14,9 @@ def full_match_extraction(url):
 
 	res = requests.get(url)
 	res.raise_for_status
+	# Unfortunately, we have to deal with a few 404 error
+	if res.status_code == 404:
+		return False
 	soup = BeautifulSoup(res.text, 'lxml')
 
 
@@ -88,11 +91,14 @@ def extract_bat(bat_table):
 				continue
 
 			M = ball_faced.next_sibling
+
+			''' I've already found a better way to solve the '-' problem in write_to_db.py
 			# I don't know what the heck M means but some are '-' too.
 			# M might be useful for someone else or later on so I'm droping it.
 			# Fortunately, I can't find M=0. So,
 			if M.string == '-':
 				M.string.replace_with('0')
+			'''
 
 			_4s = M.next_sibling
 			_6s = _4s.next_sibling

@@ -58,9 +58,29 @@ def write_full_match(tr):
 
 	print(opposition, ground, date, match_id, odi_no)
 
+	# convert numbers to python interger
+	opposition = int(opposition)
+	ground = int(ground)
+	match_id = int(match_id)
+	odi_no = int(odi_no)
+
+	# Unfortunately, some dates are like Sep 18-19, 2004.
+	# To avoid error in sql str_to_date, I'll take the first e.g Sep 18, 2004 in the above case.	
+	date = str(date)
+	if '-' in date:
+		x = date.split('-')
+		y = x[1].split(',')
+		date = x[0] + ',' + y[1]
+
 	match_url = 'https://stats.espncricinfo.com/ci/engine/match/{}.html'.format(match_id)
-	match, bat, bowl = extraction.full_match_extraction(match_url)
-	
+
+	# Incase of 404 error
+	try: 
+		match, bat, bowl = extraction.full_match_extraction(match_url)
+	except:
+		print('Couldn\'t extract match and therefore excluded')
+		return False	
+
 	add_match = '''
 					insert into mat
 					(match_id, odi_no, opposition, ground, match_date, toss, series, result, match_days)
@@ -77,18 +97,42 @@ def write_full_match(tr):
 			   '''
 	
 	# strings are bs4.navigableString object. Therefore, convert to normal py string
-	match_data = (int(match_id), int(odi_no), int(opposition), int(ground), str(date), str(match[0]), str(match[1]), str(match[2]), str(match[3]))
+	match_data = (match_id, odi_no, opposition, ground, date, str(match[0]), str(match[1]), str(match[2]), str(match[3]))
 	#print(add_match % match_data)
 	cursor.execute(add_match % match_data)
 	cnx.commit()
 
 	for b in bat:
-		bat_data = (int(b[0]), int(match_id), int(b[1]), int(b[2]), int(b[3]), int(b[4]), int(b[5]), float(b[6]))
+		# It is important to convert the following to int or float before processing them into sql statement
+		# However, issues of '-' apearing needs to be solved with the following
+		for i in range(6):
+			try: b[i] = int(b[i])
+			except: b[i] = -99
+		# :) why -99? Nothing really
+		# I'll prefer nan but '' won't work.
+		# -99 would cause outlier and disrupt analysis better than -1.
+		# So I'll remember to handle nan	
+
+		try: b[6] = float(b[6])
+		except: b[6] = -99
+		# To here
+
+		bat_data = (b[0], match_id, b[1], b[2], b[3], b[4], b[5], b[6])
 		cursor.execute(add_bat % bat_data)
 		cnx.commit()
 
 	for b in bowl:
-		bowl_data = (int(b[0]), int(match_id), float(b[1]), int(b[2]), int(b[3]), int(b[4]), float(b[5]), int(b[6]), int(b[7]), int(b[8]), int(b[9]), int(b[10]))
+		# Same as bat
+		# I noticed some overs and econ were float. Initial plan was to save as float.
+		# That doesn't make sense and to make things simpler, I'll use one for statement only.
+		# Just incase float matters, I can edit extraction.py and rearrange the return or simply create a new list here.
+		# try a[i] = int(b[i])....; bowl_data = (int(b[0])..., float(b[1]))
+		# I can already see b4 finish typing but you'll surely figure out something
+		# Not my fault, I don't know cricket
+		for i in range(11):
+			try: b[i] = int(b[i])
+			except: b[i] = -99
+		bowl_data = (b[0], match_id, b[1], b[2], b[3], b[4], b[5], b[6], b[7], b[8], b[9], b[10])
 		cursor.execute(add_bowl % bowl_data)
 		cnx.commit()
 
@@ -198,7 +242,7 @@ def write_opposition():
 		print('added team', team)
 
 #write_matches_by_year(2017)
-write_opposition()
+write_matches_by_year(2013, 2013)
 
 #print(extraction.extract_player('https://www.espncricinfo.com/southafrica/content/player/379143.html'))
 
