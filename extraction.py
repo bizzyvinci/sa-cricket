@@ -170,7 +170,7 @@ def extract_player(url):
 	tr_tag = tbody_tag.find_all('tr', 'data2')
 	for tr in tr_tag:
 		td = tr.find_all('td', 'left')
-		if td[0].string == 'ODI debut':
+		if td[0].string == 'ODI debut' or td[0].string == 'Only ODI':
 			odi_debut = td[1].contents[0].string
 			# The above odi_debut is like 'team1 v team2 at ground, Jan 19, 2013'
 			# Other details are not required

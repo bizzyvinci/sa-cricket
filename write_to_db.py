@@ -2,9 +2,10 @@ import requests
 from bs4 import BeautifulSoup
 import mysql.connector as mc
 import extraction
-
+import sqlite3
 
 cnx = mc.connect(user='bisola', password='@1Bullshit', host='127.0.0.1', database='sa_cricket')
+#cnx = sqlite3.connect('./sa_cricket.db')
 cursor = cnx.cursor()
 
 def write_matches_by_year(start, stop=2019):
@@ -234,15 +235,30 @@ def write_opposition():
 	for team in rows:
 		team = team[0] # Tuples were returned from select query
 		print('working on team', team)
-		name = team_name[team]
-		rating = team_rating[name]
+		# Kenya, Netherlands and Canada are not in record and therefore dealt with seperately
+		if team==26:
+			name = 'Kenya'
+			rating = -99
+		elif team==17:
+			name = 'Canada'
+			rating = -99
+		elif team==15:
+			name = 'Netherlands'
+			rating = -99
+		else:
+			name = team_name[team]
+			if name=='United States of America': name_id='USA'
+			elif name=='United Arab Emirates': name_id='UAE'
+			elif name=='Papua New Guinea': name_id='PNG'
+			else: name_id=name
+			rating = team_rating[name_id]
 		#print(team, name, rating)
 		cursor.execute(add_opposition % (team, name, rating))
 		cnx.commit()
 		print('added team', team)
 
 #write_matches_by_year(2017)
-write_matches_by_year(2013, 2013)
+write_opposition()
 
 #print(extraction.extract_player('https://www.espncricinfo.com/southafrica/content/player/379143.html'))
 
