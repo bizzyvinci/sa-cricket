@@ -155,12 +155,19 @@ def write_player():
 	cursor.execute(select_bowlers)
 	rows.extend(cursor.fetchall())
 
+	#set(rows) removes duplicate for players in bat and bowl
+	rows = set(rows)
+
 	add_player = '''
 					insert into player
 					values(%d, "%s",  str_to_date("%s", "%%M %%d, %%Y"), "%s", "%s", "%s", "%s")
 				 '''
+	
+	# Counter
+	aim = len(rows)
+	done = 1
 
-	for player in set(rows):	#set(rows) removes duplicate for players in bat and bowl
+	for player in rows:	
 		player = player[0]	# Tuples were returned from select query e.g (35464,)
 		print('working on player', player)
 		player_url = 'https://www.espncricinfo.com/southafrica/content/player/{}.html'.format(player)
@@ -169,7 +176,8 @@ def write_player():
 		cursor.execute(add_player % player_data)
 		cnx.commit()
 		print('added player', player)
-
+		print(done, '/', aim, 'completed')
+		done+=1
 
 def write_ground():
 	'''
@@ -185,6 +193,10 @@ def write_ground():
 	cursor.execute(select_query)
 	rows = cursor.fetchall()
 
+	# Counter
+	aim = len(rows)
+	done = 1
+
 	for ground in rows:
 		ground = ground[0] # Tuples were returned from select query
 		print('working on ground', ground)
@@ -194,6 +206,8 @@ def write_ground():
 		cursor.execute(add_ground % ground_data)
 		cnx.commit()
 		print('added ground', ground)
+		print(done, '/', aim, 'completed')
+		done+=1
 	
 	return True
 
@@ -240,6 +254,10 @@ def write_opposition():
 	rows = cursor.fetchall()
 	add_opposition = 'insert into opposition values (%d, "%s", %d)'
 
+	# Counter
+	aim = len(rows)
+	done = 1
+
 	for team in rows:
 		team = team[0] # Tuples were returned from select query
 		print('working on team', team)
@@ -268,7 +286,15 @@ def write_opposition():
 		cursor.execute(add_opposition % (team, name, rating))
 		cnx.commit()
 		print('added team', team)
+		print(done, '/', aim, 'completed')
+		done+=1
 
-
+'''
+# PROCEDURE
+write_full_match(2000,2020)
+write_player()
+write_ground()
+write_opposition()
+'''
 cursor.close()
 cnx.close()
