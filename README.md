@@ -15,3 +15,6 @@ Games between 2017 and 2019 are analyzed and the procedure for extracting their 
 * Write match from the minimum odi debut to 2016 (you can exclude players that are not in table `player` this time around)
 
 
+Note: I don't play or know cricket. So, if some of my decisions or logic seems funny, please let me know. 
+
+And get ready to explain to a child. Just kidding. I'll do more research if your explanation is terrible. Thanks in advance.
