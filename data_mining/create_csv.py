@@ -33,3 +33,5 @@ print('Saved ground.csv')
 # Read table opposition and save to csv
 pd.read_sql_table('opposition', conn).to_csv('./../datasets/opposition.csv', index=False)
 print('Saved opposition.csv')
+
+conn.close()
