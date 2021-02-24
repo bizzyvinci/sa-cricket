@@ -2,7 +2,7 @@
 
 Predict South African player's performance in cricket games from 2017 to 2019.
 
-**Project is closed**. This is a small implimentation of *cricket_journal.pdf*, but with South Africa (not india).
+**Project is closed**. This is a small implementation of *cricket_journal.pdf*, but with South Africa (not india).
 Exploratory analysis of game victories from 2000 to 2020 was also be performed.
 
 Folders:
