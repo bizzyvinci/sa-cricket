@@ -2,14 +2,15 @@
 
 Predict South African player's performance in cricket games from 2017 to 2019.
 
-Work still in progress. This is an implimentation of *cricket_journal.pdf*, but with South Africa (not india).
-Exploratory analysis of games from 2000 to 2020 would also be performed.
+**Project is closed**. This is a small implimentation of *cricket_journal.pdf*, but with South Africa (not india).
+Exploratory analysis of game victories from 2000 to 2020 was also be performed.
 
 Folders:
 * data_mining: scripts for extracting and saving data
-* explore: notebooks for exploratory analysis
+* notebook: notebooks for exploratory analysis and Machine learning
+* dataset: datasets in csv and sql format
 
-All the data has been extracted from espncricinfo.com and saved in sqlite file `sa_cricket.db`. 
+All the data has been extracted from [espncricinfo.com](https://www.espncricinfo.com/) and saved in sqlite file `sa_cricket.db`. 
 
 The procedure for extracting their data is as follows:
 * Create database (*create_db.sql*)
@@ -27,7 +28,6 @@ Initial plan was:
 * Write match from the minimum odi debut to 2016 (you can exclude players that are not in table `player` this time around)
 
 MySQL was the database used in the extraction. Alternatively, sqlite can be used too. Just note that some functions in MySQL are not in sqlite.
-
 
 Note: I don't play or know cricket. So, if some of my decisions or logic seems funny, please let me know. 
 
